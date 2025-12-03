@@ -11,7 +11,7 @@ interface DraggableTodoProps {
   isDarkMode: boolean;
   subtasks: Subtask[];
   onTodoClick: (todo: Todo) => void;
-  onToggleComplete: (todoId: string) => void;
+  onToggleComplete: (todoId: string | number) => void;
 }
 
 export default function DraggableTodo({ todo, isDarkMode, subtasks, onTodoClick, onToggleComplete }: DraggableTodoProps) {

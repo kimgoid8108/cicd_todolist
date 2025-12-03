@@ -11,11 +11,11 @@ import { createDragHandler } from "@/utils/dragHandlers";
 interface CalendarProps {
   isDarkMode: boolean;
   todos: Todo[];
-  subtasks: { [todoId: string]: Subtask[] };
-  toggleComplete: (todoId: string) => void;
-  removeTodo: (todoId: string) => void;
-  toggleSubtaskComplete: (todoId: string, subtaskId: string) => void;
-  updateTodoDate: (todoId: string, newDate: string) => void;
+  subtasks: { [todoId: string | number]: Subtask[] };
+  toggleComplete: (todoId: string | number) => void;
+  removeTodo: (todoId: string | number) => void;
+  toggleSubtaskComplete: (todoId: string | number, subtaskId: string | number) => void;
+  updateTodoDate: (todoId: string | number, newDate: string) => void;
   updateTodosOrder: (newOrder: Todo[], dateString: string) => void;
   onTodoClick: (todo: Todo) => void;
   searchQuery: string;

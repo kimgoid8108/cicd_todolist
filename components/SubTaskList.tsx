@@ -6,8 +6,8 @@ import { getTextColor } from "@/utils/styles";
 interface SubtaskListProps {
   isDarkMode: boolean;
   subtasks: Subtask[];
-  onRemoveSubtask: (subtaskId: string) => void;
-  onToggleSubtaskComplete: (subtaskId: string) => void;
+  onRemoveSubtask: (subtaskId: string | number) => void;
+  onToggleSubtaskComplete: (subtaskId: string | number) => void;
 }
 
 export default function SubtaskList({ isDarkMode, subtasks, onRemoveSubtask, onToggleSubtaskComplete }: SubtaskListProps) {

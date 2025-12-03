@@ -10,9 +10,9 @@ interface CalendarDayProps {
   day: DayInfo;
   isDarkMode: boolean;
   todos: Todo[];
-  subtasks: { [todoId: string]: Subtask[] };
+  subtasks: { [todoId: string | number]: Subtask[] };
   onTodoClick: (todo: Todo) => void;
-  onToggleComplete: (todoId: string) => void;
+  onToggleComplete: (todoId: string | number) => void;
 }
 
 export default function CalendarDay({ day, isDarkMode, todos, subtasks, onTodoClick, onToggleComplete }: CalendarDayProps) {

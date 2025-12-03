@@ -1,29 +1,17 @@
 import TodoItem from "./TodoItem";
 import TodoInput from "./TodoInput";
-
-interface Subtask {
-  id: string;
-  text: string;
-  completed: boolean;
-}
-
-interface Todo {
-  id: string;
-  text: string;
-  date: string;
-  completed: boolean;
-}
+import { Todo, Subtask } from "@/types";
 
 interface TodoListProps {
   isDarkMode: boolean;
   todos: Todo[];
-  subtasks: { [todoId: string]: Subtask[] };
+  subtasks: { [todoId: string | number]: Subtask[] };
   addTodo: (text: string, date: string) => void;
-  removeTodo: (todoId: string) => void;
-  toggleComplete: (todoId: string) => void;
-  addSubtask: (todoId: string, subtask: string) => void;
-  removeSubtask: (todoId: string, subtaskId: string) => void;
-  toggleSubtaskComplete: (todoId: string, subtaskId: string) => void;
+  removeTodo: (todoId: string | number) => void;
+  toggleComplete: (todoId: string | number) => void;
+  addSubtask: (todoId: string | number, subtask: string) => void;
+  removeSubtask: (todoId: string | number, subtaskId: string | number) => void;
+  toggleSubtaskComplete: (todoId: string | number, subtaskId: string | number) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 }

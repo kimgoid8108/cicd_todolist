@@ -8,7 +8,7 @@ interface TodoModalProps {
   todo: Todo;
   subtasks: Subtask[];
   onClose: () => void;
-  onToggleSubtask: (subtaskId: string) => void;
+  onToggleSubtask: (subtaskId: string | number) => void;
 }
 
 export default function TodoModal({ isDarkMode, todo, subtasks, onClose, onToggleSubtask }: TodoModalProps) {
