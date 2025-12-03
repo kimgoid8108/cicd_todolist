@@ -13,8 +13,8 @@ interface TodoItemProps {
   onToggleComplete: () => void;
   onRemove: () => void;
   onAddSubtask: (subtask: string) => void;
-  onRemoveSubtask: (subtaskId: string) => void;
-  onToggleSubtaskComplete: (subtaskId: string) => void;
+  onRemoveSubtask: (subtaskId: string | number) => void;
+  onToggleSubtaskComplete: (subtaskId: string | number) => void;
 }
 
 export default function TodoItem({ todo, isDarkMode, subtasks, onToggleComplete, onRemove, onAddSubtask, onRemoveSubtask, onToggleSubtaskComplete }: TodoItemProps) {
