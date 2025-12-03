@@ -4,110 +4,80 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import TodoList from "@/components/TodoList";
 import Calendar from "@/components/Calendar";
-
-interface Subtask {
-  id: string;
-  text: string;
-  completed: boolean;
-}
-
-interface Todo {
-  id: string;
-  text: string;
-  date: string; // YYYY-MM-DD 형식
-  completed: boolean;
-}
-
-interface CalendarProps {
-  isDarkMode: boolean;
-  todos: Todo[];
-  subtasks: { [todoId: string]: Subtask[] };
-  toggleComplete: (todoId: string) => void;
-  removeTodo: (todoId: string) => void;
-  toggleSubtaskComplete: (todoId: string, subtaskId: string) => void; // 이 줄이 있는지 확인
-}
-
+import TodoModal from "@/components/TodoModal";
+import { useTodos } from "@/hooks/useTodos";
+import { getSecondaryBgColor } from "@/utils/styles";
 export default function Home() {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [subtasks, setSubtasks] = useState<{ [todoId: string]: Subtask[] }>({});
   const [activeTab, setActiveTab] = useState("todo");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const {
+    todos,
+    subtasks,
+    selectedTodo,
+    setSelectedTodo,
+    addTodo,
+    removeTodo,
+    toggleComplete,
+    addSubtask,
+    removeSubtask,
+    toggleSubtaskComplete,
+    updateTodoDate,
+    updateTodosOrder,
+  } = useTodos();
 
-  const addTodo = (text: string, date: string) => {
-    const newTodo: Todo = {
-      id: `todo-${Date.now()}-${Math.random()}`,
-      text,
-      date,
-      completed: false,
-    };
-    setTodos([...todos, newTodo]);
-  };
-
-  const removeTodo = (todoId: string) => {
-    setTodos(todos.filter((t) => t.id !== todoId));
-    setSubtasks((prev) => {
-      const newSubtasks = { ...prev };
-      delete newSubtasks[todoId];
-      return newSubtasks;
-    });
-  };
-
-  const toggleComplete = (todoId: string) => {
-    setTodos(todos.map((t) => (t.id === todoId ? { ...t, completed: !t.completed } : t)));
-  };
-
-  const addSubtask = (todoId: string, subtaskText: string) => {
-    const newSubtask: Subtask = {
-      id: `${Date.now()}-${Math.random()}`,
-      text: subtaskText,
-      completed: false,
-    };
-    setSubtasks({
-      ...subtasks,
-      [todoId]: [...(subtasks[todoId] || []), newSubtask],
-    });
-  };
-
-  const removeSubtask = (todoId: string, subtaskId: string) => {
-    const updatedSubtasks = subtasks[todoId]?.filter((st) => st.id !== subtaskId) || [];
-    setSubtasks({
-      ...subtasks,
-      [todoId]: updatedSubtasks,
-    });
-  };
-
-  const toggleSubtaskComplete = (todoId: string, subtaskId: string) => {
-    const updatedSubtasks = subtasks[todoId]?.map((st) => (st.id === subtaskId ? { ...st, completed: !st.completed } : st)) || [];
-    setSubtasks({
-      ...subtasks,
-      [todoId]: updatedSubtasks,
-    });
-  };
+  // 검색 필터링
+  const filteredTodos = todos.filter((todo) =>
+    todo.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div
-      className="flex min-h-screen flex-col p-4 transition-colors"
-      style={{
-        backgroundColor: isDarkMode ? "#111827" : "#f3f4f6",
-      }}>
+    <div className="flex h-screen flex-col p-4 transition-colors overflow-hidden" style={{ backgroundColor: getSecondaryBgColor(isDarkMode) }}>
       <Header isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {activeTab === "todo" && (
-        <TodoList
-          isDarkMode={isDarkMode}
-          todos={todos}
-          subtasks={subtasks}
-          addTodo={addTodo}
-          removeTodo={removeTodo}
-          toggleComplete={toggleComplete}
-          addSubtask={addSubtask}
-          removeSubtask={removeSubtask}
-          toggleSubtaskComplete={toggleSubtaskComplete}
-        />
-      )}
+      <div className="relative flex-1 overflow-hidden w-full">
+        <div className="flex h-full transition-transform duration-500 ease-in-out" style={{ transform: activeTab === "todo" ? "translateX(0)" : "translateX(-100%)" }}>
+          <div className="min-w-full h-full">
+            <TodoList
+              isDarkMode={isDarkMode}
+              todos={filteredTodos}
+              subtasks={subtasks}
+              addTodo={addTodo}
+              removeTodo={removeTodo}
+              toggleComplete={toggleComplete}
+              addSubtask={addSubtask}
+              removeSubtask={removeSubtask}
+              toggleSubtaskComplete={toggleSubtaskComplete}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
+          </div>
+          <div className="min-w-full h-full">
+            <Calendar
+              isDarkMode={isDarkMode}
+              todos={filteredTodos}
+              subtasks={subtasks}
+              toggleComplete={toggleComplete}
+              removeTodo={removeTodo}
+              toggleSubtaskComplete={toggleSubtaskComplete}
+              updateTodoDate={updateTodoDate}
+              updateTodosOrder={updateTodosOrder}
+              onTodoClick={setSelectedTodo}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
+          </div>
+        </div>
+      </div>
 
-      {activeTab === "calendar" && (
-        <Calendar isDarkMode={isDarkMode} todos={todos} subtasks={subtasks} toggleComplete={toggleComplete} removeTodo={removeTodo} toggleSubtaskComplete={toggleSubtaskComplete} />
+      {selectedTodo && (
+        <TodoModal
+          isDarkMode={isDarkMode}
+          todo={selectedTodo}
+          subtasks={subtasks[selectedTodo.id] || []}
+          onClose={() => setSelectedTodo(null)}
+          onToggleSubtask={(sid) => toggleSubtaskComplete(selectedTodo.id, sid)}
+        />
       )}
     </div>
   );

@@ -43,6 +43,7 @@ export default function Header({ isDarkMode, setIsDarkMode, activeTab, setActive
           style={{
             backgroundColor: isDarkMode ? "#374151" : "#e5e7eb",
             color: isDarkMode ? "#ffffff" : "#111827",
+            cursor: "pointer",
           }}>
           {isDarkMode ? "☀️ Light" : "🌙 Dark"}
         </button>
@@ -67,6 +68,7 @@ export default function Header({ isDarkMode, setIsDarkMode, activeTab, setActive
           style={{
             backgroundColor: activeTab === "todo" ? "#3b82f6" : isDarkMode ? "#374151" : "#e5e7eb",
             color: activeTab === "todo" ? "#ffffff" : isDarkMode ? "#ffffff" : "#111827",
+            cursor: "pointer",
           }}>
           Todo
         </button>
@@ -76,6 +78,7 @@ export default function Header({ isDarkMode, setIsDarkMode, activeTab, setActive
           style={{
             backgroundColor: activeTab === "calendar" ? "#3b82f6" : isDarkMode ? "#374151" : "#e5e7eb",
             color: activeTab === "calendar" ? "#ffffff" : isDarkMode ? "#ffffff" : "#111827",
+            cursor: "pointer",
           }}>
           주간 캘린더
         </button>

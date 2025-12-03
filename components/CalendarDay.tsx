@@ -1,26 +1,10 @@
 "use client";
 
-interface Todo {
-  id: string;
-  text: string;
-  date: string;
-  completed: boolean;
-}
-
-interface Subtask {
-  id: string;
-  text: string;
-  completed: boolean;
-}
-
-interface DayInfo {
-  date: Date;
-  dayOfWeek: string;
-  dayNumber: number;
-  month: number;
-  isToday: boolean;
-  dateString: string;
-}
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import DraggableTodo from "./DraggableTodo";
+import { Todo, Subtask, DayInfo } from "@/types";
+import { getDayOfWeekColor, getBgColor, getBorderColor } from "@/utils/styles";
 
 interface CalendarDayProps {
   day: DayInfo;
@@ -32,97 +16,41 @@ interface CalendarDayProps {
 }
 
 export default function CalendarDay({ day, isDarkMode, todos, subtasks, onTodoClick, onToggleComplete }: CalendarDayProps) {
+  const { setNodeRef } = useDroppable({ id: day.dateString });
+
+  const dayBgColor = day.isToday ? "#3b82f6" : getBgColor(isDarkMode);
+  const dayBorder = day.isToday ? "none" : `1px solid ${getBorderColor(isDarkMode)}`;
+  const headerBorderColor = day.isToday ? "rgba(255,255,255,0.2)" : getBorderColor(isDarkMode);
+  const dayOfWeekColor = getDayOfWeekColor(day.dayOfWeek, day.isToday, isDarkMode);
+
   return (
-    <div
-      className="flex flex-col rounded-lg transition-all"
-      style={{
-        backgroundColor: day.isToday ? "#3b82f6" : isDarkMode ? "#1f2937" : "#ffffff",
-        border: day.isToday ? "none" : `1px solid ${isDarkMode ? "#374151" : "#e5e7eb"}`,
-        minHeight: "200px",
-      }}>
-      <div
-        className="p-2 border-b"
-        style={{
-          borderColor: day.isToday ? "rgba(255,255,255,0.2)" : isDarkMode ? "#374151" : "#e5e7eb",
-        }}>
-        <div
-          className="text-sm font-medium mb-1 text-center"
-          style={{
-            color:
-              day.dayOfWeek === "일"
-                ? day.isToday
-                  ? "#ffffff"
-                  : "#ef4444"
-                : day.dayOfWeek === "토"
-                ? day.isToday
-                  ? "#ffffff"
-                  : "#3b82f6"
-                : day.isToday
-                ? "#ffffff"
-                : isDarkMode
-                ? "#ffffff"
-                : "#111827",
-          }}>
+    <div ref={setNodeRef} className="flex flex-col rounded-lg transition-all" style={{ backgroundColor: dayBgColor, border: dayBorder, minHeight: "200px" }}>
+      <div className="p-2 border-b" style={{ borderColor: headerBorderColor }}>
+        <div className="text-sm font-medium mb-1 text-center" style={{ color: dayOfWeekColor }}>
           {day.dayOfWeek}
         </div>
-        <div
-          className="text-xl font-bold text-center"
-          style={{
-            color: day.isToday ? "#ffffff" : "inherit",
-          }}>
+        <div className="text-xs text-center mb-1" style={{ color: day.isToday ? "rgba(255,255,255,0.8)" : isDarkMode ? "#9ca3af" : "#6b7280" }}>
+          {day.month}월
+        </div>
+        <div className="text-xl font-bold text-center" style={{ color: day.isToday ? "#ffffff" : "inherit" }}>
           {day.dayNumber}
         </div>
         {day.isToday && <div className="text-xs mt-1 font-semibold text-center text-white">TODAY</div>}
       </div>
 
       <div className="p-2 flex-1 overflow-y-auto">
-        {todos.map((todo) => {
-          const todoSubtasks = subtasks[todo.id] || [];
-          const completedCount = todoSubtasks.filter((st) => st.completed).length;
-          const totalCount = todoSubtasks.length;
-
-          return (
-            <div
+        <SortableContext items={todos.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+          {todos.map((todo) => (
+            <DraggableTodo
               key={todo.id}
-              onClick={() => onTodoClick(todo)}
-              className="mb-2 p-2 rounded text-xs cursor-pointer hover:opacity-80 transition-opacity"
-              style={{
-                backgroundColor: isDarkMode ? "#374151" : "#f3f4f6",
-                border: `1px solid ${isDarkMode ? "#4b5563" : "#e5e7eb"}`,
-              }}>
-              <div className="flex items-start justify-between gap-1">
-                <span
-                  className={todo.completed ? "line-through flex-1" : "flex-1"}
-                  style={{
-                    color: todo.completed ? (isDarkMode ? "#9ca3af" : "#6b7280") : isDarkMode ? "#ffffff" : "#111827",
-                    wordBreak: "break-word",
-                  }}>
-                  {todo.text}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleComplete(todo.id);
-                  }}
-                  className="text-xs px-1 hover:opacity-80"
-                  style={{
-                    color: isDarkMode ? "#34d399" : "#10b981",
-                  }}>
-                  ✓
-                </button>
-              </div>
-              {totalCount > 0 && (
-                <div
-                  className="text-xs mt-1"
-                  style={{
-                    color: isDarkMode ? "#9ca3af" : "#6b7280",
-                  }}>
-                  {completedCount}/{totalCount} 완료
-                </div>
-              )}
-            </div>
-          );
-        })}
+              todo={todo}
+              isDarkMode={isDarkMode}
+              subtasks={subtasks[todo.id] || []}
+              onTodoClick={onTodoClick}
+              onToggleComplete={onToggleComplete}
+            />
+          ))}
+        </SortableContext>
       </div>
     </div>
   );

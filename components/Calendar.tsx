@@ -3,20 +3,10 @@
 import { useState, useEffect } from "react";
 import CalendarHeader from "./CalendarHeader";
 import CalendarDay from "./CalendarDay";
-import TodoModal from "./TodoModal";
-
-interface Todo {
-  id: string;
-  text: string;
-  date: string;
-  completed: boolean;
-}
-
-interface Subtask {
-  id: string;
-  text: string;
-  completed: boolean;
-}
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { Todo, Subtask, DayInfo } from "@/types";
+import { generateWeekDays, getWeekRange } from "@/utils/date";
+import { createDragHandler } from "@/utils/dragHandlers";
 
 interface CalendarProps {
   isDarkMode: boolean;
@@ -25,130 +15,88 @@ interface CalendarProps {
   toggleComplete: (todoId: string) => void;
   removeTodo: (todoId: string) => void;
   toggleSubtaskComplete: (todoId: string, subtaskId: string) => void;
+  updateTodoDate: (todoId: string, newDate: string) => void;
+  updateTodosOrder: (newOrder: Todo[], dateString: string) => void;
+  onTodoClick: (todo: Todo) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }
 
-interface DayInfo {
-  date: Date;
-  dayOfWeek: string;
-  dayNumber: number;
-  month: number;
-  isToday: boolean;
-  dateString: string;
-}
+const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
 
-export default function Calendar({ isDarkMode, todos, subtasks, toggleComplete, removeTodo, toggleSubtaskComplete }: CalendarProps) {
+export default function Calendar({
+  isDarkMode,
+  todos,
+  subtasks,
+  toggleComplete,
+  removeTodo,
+  toggleSubtaskComplete,
+  updateTodoDate,
+  updateTodosOrder,
+  onTodoClick,
+  searchQuery,
+  setSearchQuery,
+}: CalendarProps) {
   const [weekDays, setWeekDays] = useState<DayInfo[]>([]);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(new Date());
-  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
 
-  const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   useEffect(() => {
-    generateWeekDays(currentWeekStart);
+    const days = generateWeekDays(currentWeekStart, DAY_NAMES);
+    setWeekDays(days);
   }, [currentWeekStart]);
 
-  const generateWeekDays = (startDate: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const getTodosForDate = (dateString: string) => todos.filter((todo) => todo.date === dateString);
+  const handleDragEnd = createDragHandler(todos, getTodosForDate, updateTodoDate, updateTodosOrder);
 
-    const sunday = new Date(startDate);
-    const day = sunday.getDay();
-    sunday.setDate(sunday.getDate() - day);
-
-    const days: DayInfo[] = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(sunday);
-      date.setDate(sunday.getDate() + i);
-
-      const compareDate = new Date(date);
-      compareDate.setHours(0, 0, 0, 0);
-
-      days.push({
-        date: date,
-        dayOfWeek: dayNames[date.getDay()],
-        dayNumber: date.getDate(),
-        month: date.getMonth() + 1,
-        isToday: compareDate.getTime() === today.getTime(),
-        dateString: date.toISOString().split("T")[0],
-      });
-    }
-    setWeekDays(days);
-  };
-
-  const getTodosForDate = (dateString: string) => {
-    return todos.filter((todo) => todo.date === dateString);
-  };
-
-  const goToPreviousWeek = () => {
+  const navigateWeek = (days: number) => {
     const newDate = new Date(currentWeekStart);
-    newDate.setDate(newDate.getDate() - 7);
+    newDate.setDate(newDate.getDate() + days);
     setCurrentWeekStart(newDate);
-  };
-
-  const goToNextWeek = () => {
-    const newDate = new Date(currentWeekStart);
-    newDate.setDate(newDate.getDate() + 7);
-    setCurrentWeekStart(newDate);
-  };
-
-  const goToToday = () => {
-    setCurrentWeekStart(new Date());
-  };
-
-  const getWeekRange = () => {
-    if (weekDays.length === 0) return "";
-    const firstDay = weekDays[0];
-    const lastDay = weekDays[6];
-    const firstYear = firstDay.date.getFullYear();
-    const lastYear = lastDay.date.getFullYear();
-
-    if (firstYear !== lastYear) {
-      return `${firstYear}년 ${firstDay.month}월 ${firstDay.dayNumber}일 - ${lastYear}년 ${lastDay.month}월 ${lastDay.dayNumber}일`;
-    } else if (firstDay.month !== lastDay.month) {
-      return `${firstYear}년 ${firstDay.month}월 ${firstDay.dayNumber}일 - ${lastDay.month}월 ${lastDay.dayNumber}일`;
-    } else {
-      return `${firstYear}년 ${firstDay.month}월 ${firstDay.dayNumber}일 - ${lastDay.dayNumber}일`;
-    }
-  };
-
-  const handleTodoClick = (todo: Todo) => {
-    setSelectedTodo(todo);
-  };
-
-  const closeModal = () => {
-    setSelectedTodo(null);
-  };
-
-  const handleSubtaskToggle = (subtaskId: string) => {
-    if (selectedTodo) {
-      toggleSubtaskComplete(selectedTodo.id, subtaskId);
-
-      const todoSubtasks = subtasks[selectedTodo.id] || [];
-      const updatedSubtasks = todoSubtasks.map((st) => (st.id === subtaskId ? { ...st, completed: !st.completed } : st));
-
-      const allCompleted = updatedSubtasks.length > 0 && updatedSubtasks.every((st) => st.completed);
-
-      if (allCompleted && !selectedTodo.completed) {
-        toggleComplete(selectedTodo.id);
-      } else if (!allCompleted && selectedTodo.completed) {
-        toggleComplete(selectedTodo.id);
-      }
-    }
   };
 
   return (
     <div style={{ color: isDarkMode ? "#ffffff" : "#111827" }}>
-      <CalendarHeader isDarkMode={isDarkMode} weekRange={getWeekRange()} onPreviousWeek={goToPreviousWeek} onToday={goToToday} onNextWeek={goToNextWeek} />
+      <CalendarHeader
+        isDarkMode={isDarkMode}
+        weekRange={getWeekRange(weekDays)}
+        onPreviousWeek={() => navigateWeek(-7)}
+        onToday={() => setCurrentWeekStart(new Date())}
+        onNextWeek={() => navigateWeek(7)}
+      />
 
-      <div className="grid grid-cols-7 gap-2">
-        {weekDays.map((day, index) => {
-          const dayTodos = getTodosForDate(day.dateString);
-
-          return <CalendarDay key={index} day={day} isDarkMode={isDarkMode} todos={dayTodos} subtasks={subtasks} onTodoClick={handleTodoClick} onToggleComplete={toggleComplete} />;
-        })}
+      {/* 검색창 */}
+      <div className="mb-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="🔍 Todo 검색..."
+          className="w-full p-3 rounded-lg border-2 transition-colors"
+          style={{
+            backgroundColor: isDarkMode ? "#374151" : "#ffffff",
+            borderColor: isDarkMode ? "#4b5563" : "#d1d5db",
+            color: isDarkMode ? "#ffffff" : "#111827",
+          }}
+        />
       </div>
 
-      {selectedTodo && <TodoModal isDarkMode={isDarkMode} todo={selectedTodo} subtasks={subtasks[selectedTodo.id] || []} onClose={closeModal} onToggleSubtask={handleSubtaskToggle} />}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-7 gap-2">
+          {weekDays.map((day) => (
+            <CalendarDay
+              key={day.dateString}
+              day={day}
+              isDarkMode={isDarkMode}
+              todos={getTodosForDate(day.dateString)}
+              subtasks={subtasks}
+              onTodoClick={onTodoClick}
+              onToggleComplete={toggleComplete}
+            />
+          ))}
+        </div>
+      </DndContext>
     </div>
   );
 }

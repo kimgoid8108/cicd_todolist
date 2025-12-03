@@ -20,6 +20,7 @@ export default function CalendarHeader({ isDarkMode, weekRange, onPreviousWeek, 
             style={{
               backgroundColor: isDarkMode ? "#374151" : "#e5e7eb",
               color: isDarkMode ? "#ffffff" : "#111827",
+              cursor: "pointer",
             }}>
             지난주
           </button>
@@ -29,6 +30,7 @@ export default function CalendarHeader({ isDarkMode, weekRange, onPreviousWeek, 
             style={{
               backgroundColor: isDarkMode ? "#374151" : "#e5e7eb",
               color: isDarkMode ? "#ffffff" : "#111827",
+              cursor: "pointer",
             }}>
             오늘
           </button>
@@ -38,6 +40,7 @@ export default function CalendarHeader({ isDarkMode, weekRange, onPreviousWeek, 
             style={{
               backgroundColor: isDarkMode ? "#374151" : "#e5e7eb",
               color: isDarkMode ? "#ffffff" : "#111827",
+              cursor: "pointer",
             }}>
             다음주
           </button>

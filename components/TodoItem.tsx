@@ -2,19 +2,9 @@
 
 import SubtaskInput from "./SubtaskInput";
 import SubtaskList from "./SubTaskList";
-
-interface Subtask {
-  id: string;
-  text: string;
-  completed: boolean;
-}
-
-interface Todo {
-  id: string;
-  text: string;
-  date: string;
-  completed: boolean;
-}
+import { Todo, Subtask } from "@/types";
+import { formatDate } from "@/utils/date";
+import { getTextColor, getBgColor } from "@/utils/styles";
 
 interface TodoItemProps {
   todo: Todo;
@@ -30,32 +20,17 @@ interface TodoItemProps {
 export default function TodoItem({ todo, isDarkMode, subtasks, onToggleComplete, onRemove, onAddSubtask, onRemoveSubtask, onToggleSubtaskComplete }: TodoItemProps) {
   const completedSubtasksCount = subtasks.filter((st) => st.completed).length;
   const canDelete = subtasks.length === 0 || subtasks.length === completedSubtasksCount;
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return `${date.getMonth() + 1}/${date.getDate()}`;
-  };
+  const buttonOpacity = !canDelete ? 0.5 : 1;
+  const buttonCursor = !canDelete ? "not-allowed" : "pointer";
 
   return (
-    <li
-      className="flex flex-col p-2 mb-2 rounded shadow transition-colors"
-      style={{
-        backgroundColor: isDarkMode ? "#1f2937" : "#ffffff",
-      }}>
+    <li className="flex flex-col p-2 mb-2 rounded shadow transition-colors" style={{ backgroundColor: getBgColor(isDarkMode) }}>
       <div className="flex justify-between items-center">
         <div className="flex flex-col">
-          <span
-            className={todo.completed ? "line-through" : ""}
-            style={{
-              color: todo.completed ? (isDarkMode ? "#9ca3af" : "#6b7280") : isDarkMode ? "#ffffff" : "#111827",
-            }}>
+          <span className={todo.completed ? "line-through" : ""} style={{ color: getTextColor(isDarkMode, todo.completed) }}>
             {todo.text}
           </span>
-          <span
-            className="text-xs mt-1"
-            style={{
-              color: isDarkMode ? "#9ca3af" : "#6b7280",
-            }}>
+          <span className="text-xs mt-1" style={{ color: getTextColor(isDarkMode, true) }}>
             📅 {formatDate(todo.date)}
           </span>
         </div>
@@ -63,22 +38,14 @@ export default function TodoItem({ todo, isDarkMode, subtasks, onToggleComplete,
           <button
             onClick={onToggleComplete}
             className="hover:opacity-80"
-            style={{
-              color: isDarkMode ? "#34d399" : "#10b981",
-              opacity: !canDelete ? 0.5 : 1,
-              cursor: !canDelete ? "not-allowed" : "pointer",
-            }}
+            style={{ color: isDarkMode ? "#34d399" : "#10b981", opacity: buttonOpacity, cursor: buttonCursor }}
             disabled={!canDelete}>
             {todo.completed ? "비완료" : "완료"}
           </button>
           <button
             onClick={onRemove}
             className="hover:opacity-80"
-            style={{
-              color: isDarkMode ? "#f87171" : "#ef4444",
-              opacity: !canDelete ? 0.5 : 1,
-              cursor: !canDelete ? "not-allowed" : "pointer",
-            }}
+            style={{ color: isDarkMode ? "#f87171" : "#ef4444", opacity: buttonOpacity, cursor: buttonCursor }}
             disabled={!canDelete}>
             🗑️
           </button>
