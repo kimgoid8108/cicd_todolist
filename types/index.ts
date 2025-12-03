@@ -1,14 +1,16 @@
 export interface Todo {
-  id: string;
+  id: string | number;
   text: string;
   date: string;
   completed: boolean;
+  display_order?: number;
 }
 
 export interface Subtask {
-  id: string;
+  id: string | number;
   text: string;
   completed: boolean;
+  display_order?: number;
 }
 
 export interface DayInfo {
